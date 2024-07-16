@@ -1,0 +1,21 @@
+{
+  "name": "gimbuilder",
+  "version": "0.0.1",
+  "description": "Creates gimbuild builds",
+  "author": "Ashwagandhae",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "gl build"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^26.0.1",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "gimloader": "github:TheLazySquid/Gimloader"
+  },
+  "dependencies": {
+    "gimbuild": "github:Ashwagandhae/gimbuild",
+    "ts-results": "^3.3.0"
+  }
+}

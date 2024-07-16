@@ -8,16 +8,12 @@ export function update(state: State): void {
 }
 
 function updateChannels(state: State): void {
-  let activeChannels = Object.entries(state.channels)
-    .filter(([_, broadcastCount]) => broadcastCount > 0)
-    .map(([channel, _]) => channel);
-
-  for (let channel of activeChannels) {
-    updateWorldFromChannelCall(state, channel);
-  }
-
-  for (let channel of activeChannels) {
-    state.channels[channel]! -= 1;
+  let channels = structuredClone(state.channels);
+  state.channels = {};
+  for (let [channel, count] of Object.entries(channels)) {
+    for (let i = 0; i < count; i++) {
+      updateWorldFromChannelCall(state, channel);
+    }
   }
 }
 

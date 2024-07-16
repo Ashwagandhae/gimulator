@@ -77,7 +77,9 @@ var import_miniplex = require("miniplex");
 function init(build2) {
   const world = new import_miniplex.World();
   const channels = {};
-  build2.devices.toReversed().forEach((device2) => {
+  let devices = build2.devices;
+  devices = devices.slice().reverse();
+  devices.forEach((device2) => {
     world.add(newEntity(device2));
   });
   let queries = {
@@ -501,12 +503,12 @@ function update(state) {
   updateChannels(state);
 }
 function updateChannels(state) {
-  let activeChannels = Object.entries(state.channels).filter(([_, broadcastCount]) => broadcastCount > 0).map(([channel, _]) => channel);
-  for (let channel of activeChannels) {
-    updateWorldFromChannelCall(state, channel);
-  }
-  for (let channel of activeChannels) {
-    state.channels[channel] -= 1;
+  let channels = structuredClone(state.channels);
+  state.channels = {};
+  for (let [channel, count] of Object.entries(channels)) {
+    for (let i = 0; i < count; i++) {
+      updateWorldFromChannelCall(state, channel);
+    }
   }
 }
 function updateWorldFromChannelCall(state, channel) {

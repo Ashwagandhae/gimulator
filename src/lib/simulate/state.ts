@@ -22,8 +22,10 @@ export function init(build: SimBuild): State {
   const world = new World<Entity>();
   const channels: Record<string, number> = {};
 
+  let devices = build.devices;
   // reverse because miniplex reverses
-  build.devices.toReversed().forEach((device) => {
+  devices = devices.slice().reverse();
+  devices.forEach((device) => {
     world.add(newEntity(device));
   });
 

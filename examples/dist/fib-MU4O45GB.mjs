@@ -1,31 +1,30 @@
-"use strict";
+import {
+  addRuntime,
+  createOnChannelFunction
+} from "./chunk-ER5NZVFO.mjs";
+import "./chunk-4UEJOM6W.mjs";
 
-// src/main.ts
-var import_gimulator = require("gimulator");
-var b = (0, import_gimulator.build)("relative");
-function textProperty(name) {
-  return (0, import_gimulator.device)("property").options({
-    propertyName: name,
-    valueType: "string",
-    defaultValueText: ""
-  });
-}
-function onChannel(name, code) {
-  return b.addDevice((0, import_gimulator.device)("notification").addChannelCodeGrid(name, code));
-}
-b.addDevice(textProperty("call"));
-b.addDevice(textProperty("stack"));
-b.addDevice(textProperty("stack.pop"));
-for (let i = 0; i < 3; i++) {
-  b.addDevice(textProperty("stack[" + i + "]"));
-}
+// src/projects/fib.ts
+import { build, device, Sim, toBuild, transform } from "gimulator";
+var b = build("relative");
+var onChannel = createOnChannelFunction(b);
+addRuntime(b);
+b.addDevice(
+  device("button").options({
+    interactionDuration: 0,
+    guiMessage: "start",
+    channel: "start"
+  }).transform(transform(0, 64))
+);
 onChannel("start", (d) => {
-  d.setPropertyValue("stack,done", "4");
-  d.setPropertyValue("call", "fib");
+  d.setPropertyValue("stack", "10,x,x,x");
+  d.setPropertyValue("call", "fib0,done,x,x,x");
   d.broadcastMessageOnChannel("call");
 });
 onChannel("done", (d) => {
-  console.log("done", d.getProperty("stack"));
+  let res = d.getProperty("stack[0]");
+  console.log("done", res);
+  d.sendNotificationTitleContent("done", res);
 });
 onChannel("fib0", (d) => {
   let n = d.getProperty("stack[0]") * 1;
@@ -75,13 +74,31 @@ onChannel("fib2", (d) => {
   );
   d.broadcastMessageOnChannel("call");
 });
+var fib_default = {
+  build: toBuild(b.build()),
+  sim
+};
+function logState(step, sim2) {
+  const logProperties = ["stack", "stack[0]", "stack[1]", "call"];
+  console.log("---------------------------------");
+  console.log("| step:", step);
+  for (let i = 0; i < logProperties.length; i++) {
+    let value = sim2.getProperty(logProperties[i]);
+    console.log(`| ${logProperties[i]}: `, value);
+  }
+  console.log("---------------------------------");
+}
 function sim() {
-  let sim2 = new import_gimulator.Sim(b.build());
+  let sim2 = new Sim(b.build());
   sim2.broadcastOn("start");
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 1e4; i++) {
+    logState(i, sim2);
+    if (Object.keys(sim2.state.channels).length === 0) {
+      break;
+    }
     sim2.update();
   }
 }
-
-// src/sim.ts
-sim();
+export {
+  fib_default as default
+};

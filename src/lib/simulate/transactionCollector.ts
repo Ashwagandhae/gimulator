@@ -3,8 +3,23 @@ import { Transaction } from './transaction';
 import { State } from './state';
 import { Color } from './transaction';
 
-function unimpl(): never {
-  throw new Error('Not implemented');
+function unimpl() {
+  console.warn('Called unimplemented function');
+}
+
+function unimplNum(): number {
+  unimpl();
+  return 0;
+}
+
+function unimplStr(): string {
+  unimpl();
+  return '';
+}
+
+function unimplBool(): boolean {
+  unimpl();
+  return false;
 }
 
 export class TransactionCollector {
@@ -12,6 +27,12 @@ export class TransactionCollector {
   readonly state: State;
   constructor(state: State) {
     this.state = state;
+  }
+
+  // bake allows you to dynamically create valid js expression strings (exprStringKey),
+  // and inject them into the function, while also leaving a an actual value for gimulator.
+  bake<T>(gimulatorValue: T, exprStringKey: string): T {
+    return gimulatorValue;
   }
 
   logicBoolean(BOOL: 'TRUE' | 'FALSE'): boolean {
@@ -207,7 +228,7 @@ export class TransactionCollector {
         AT = AT ?? 1;
         break;
       case 'FROM_END':
-        AT = VALUE?.length ?? 0 - (AT ?? 1);
+        AT = (VALUE?.length ?? 0) - (AT ?? 0) + 1;
         break;
       case 'FIRST':
         AT = 1;
@@ -271,11 +292,17 @@ export class TransactionCollector {
     if (set_property == null || value == null) {
       return;
     }
-    this.transactions.push({
-      type: 'setProperty',
-      property: set_property,
-      value,
-    });
+    // this.transactions.push({
+    //   type: 'setProperty',
+    //   property: set_property,
+    //   value,
+    // });
+    // TODO come up with better solution
+    for (let entity of this.state.queries.property) {
+      if (entity.device.type != 'property') continue;
+      if (entity.device.options.propertyName != set_property) continue;
+      entity.property = value;
+    }
   }
 
   getProperty(get_property: string | null): string | number | boolean {
@@ -287,7 +314,7 @@ export class TransactionCollector {
     throw new Error(`Property not found: ${get_property}`);
   }
   triggeringPlayersName(): string {
-    unimpl();
+    return unimplStr();
   }
 
   addActivityFeedItemForEveryone(
@@ -306,23 +333,23 @@ export class TransactionCollector {
     add_activity_feed_item_for_game_host: string | null
   ): void {}
   triggeringPlayersTeamNumber(): number {
-    unimpl();
+    return unimplNum();
   }
   triggeringPlayersScore(): number {
-    unimpl();
+    return unimplNum();
   }
 
   getScoreOfTeam(get_score_of_team: number | null): number {
-    unimpl();
+    return unimplNum();
   }
   isALiveGame(): boolean {
-    unimpl();
+    return unimplBool();
   }
   isAnAssignment(): boolean {
-    unimpl();
+    return unimplBool();
   }
   secondsIntoGame(): number {
-    unimpl();
+    return unimplNum();
   }
 
   setObjectiveTo(set_objective_to: string | null): void {
@@ -343,19 +370,19 @@ export class TransactionCollector {
     title: string | null,
     content: string | null
   ): void {
-    unimpl();
+    console.log('notification:', title, '|', content);
   }
   otherPlayersName(): string {
-    unimpl();
+    return unimplStr();
   }
   otherPlayersTeamNumber(): number {
-    unimpl();
+    return unimplNum();
   }
 
   getPropertyAsOtherPlayer(
     get_property_as_other_player: string | null
   ): string | number | boolean {
-    unimpl();
+    return unimplNum();
   }
 
   setPropertyAsOtherPlayerValue(
@@ -406,7 +433,7 @@ export class TransactionCollector {
     unimpl();
   }
   questionsAnsweredCorrectlyInARow(): number {
-    unimpl();
+    return unimplNum();
   }
 
   setMessageShownWhenPlayerAnswersCorrectly(
@@ -429,35 +456,35 @@ export class TransactionCollector {
     unimpl();
   }
   getAmountOfCurrentItem(): number {
-    unimpl();
+    return unimplNum();
   }
 
   setGuiText(set_text: string | null): void {
     unimpl();
   }
   getMinutes(): number {
-    unimpl();
+    return unimplNum();
   }
   getSeconds(): number {
-    unimpl();
+    return unimplNum();
   }
   getTimeLeftFormatted(): string {
-    unimpl();
+    return unimplStr();
   }
   numberOfPlayersOnTeam(): number {
-    unimpl();
+    return unimplNum();
   }
   knockedPlayersName(): string {
-    unimpl();
+    return unimplStr();
   }
   knockedPlayersTeamNumber(): number {
-    unimpl();
+    return unimplNum();
   }
 
   getPropertyAsKnockedOutPlayer(
     get_property_as_knocked_out_player: string | null
   ): string | number | boolean {
-    unimpl();
+    return unimplNum();
   }
 
   setPropertyAsKnockedOutPlayerValue(
@@ -473,16 +500,16 @@ export class TransactionCollector {
     unimpl();
   }
   tagZoneOtherCharacterName(): string {
-    unimpl();
+    return unimplStr();
   }
   tagZoneOtherCharacterTeamNumber(): number {
-    unimpl();
+    return unimplNum();
   }
   playersXPosition(): number {
-    unimpl();
+    return unimplNum();
   }
   playersYPosition(): number {
-    unimpl();
+    return unimplNum();
   }
 
   damagePlayerCustomAmountAmount(amount: number | null): void {

@@ -23,5 +23,9 @@ export function toBuild(simBuild: SimBuild): Build {
 }
 
 function toProgram(simProgram: SimProgram): Program {
-  return jsToBlocks(simProgram.toString());
+  if (typeof simProgram === 'function') {
+    return jsToBlocks(simProgram.toString());
+  } else {
+    return simProgram.blocks;
+  }
 }

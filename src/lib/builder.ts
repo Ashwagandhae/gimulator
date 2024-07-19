@@ -1,3 +1,4 @@
+import { Block, Program } from 'gimblocks';
 import { Union } from 'gimblocks/device';
 import { DeviceTypeMap } from 'gimbuild';
 
@@ -6,7 +7,15 @@ import { BuildGeneric, DeviceGeneric } from 'gimbuild';
 
 export { TransformBuilder, type Transform, transform } from 'gimbuild';
 
-export type SimProgram = (d: Union) => void;
+export type UnionWithBake = Union & {
+  bake: <T>(gimulatorValue: T, exprStringKey: string) => T;
+};
+export type SimProgram =
+  | ((d: Union) => void)
+  | {
+      program: (d: UnionWithBake) => void;
+      blocks: Program;
+    };
 
 export type SimBuild = BuildGeneric<SimProgram>;
 export type SimDevice = DeviceGeneric<SimProgram>;

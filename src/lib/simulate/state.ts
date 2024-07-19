@@ -8,6 +8,10 @@ export type Entity = {
     text: string;
     color: string;
   };
+  activated?: boolean;
+  visible?: boolean;
+  triggerCount?: number;
+  recursionCount?: number;
 };
 
 export type State = {
@@ -23,8 +27,7 @@ export function init(build: SimBuild): State {
   const channels: Record<string, number> = {};
 
   let devices = build.devices;
-  // reverse because miniplex reverses
-  devices = devices.slice().reverse();
+  devices = devices.slice();
   devices.forEach((device) => {
     world.add(newEntity(device));
   });
@@ -59,6 +62,12 @@ function newEntity(device: SimDevice): Entity {
         text: device.options.text,
         color: device.options.color,
       };
+      ret.visible = device.options.visibleOnGameStart == 'Yes';
+      break;
+    case 'trigger':
+      ret.activated = device.options.activeOnGameStart;
+      ret.triggerCount = 0;
+      ret.recursionCount = 0;
       break;
   }
   return ret;

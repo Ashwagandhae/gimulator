@@ -25,6 +25,8 @@ __export(src_exports, {
   SimDeviceBuilder: () => SimDeviceBuilder,
   TransformBuilder: () => import_gimbuild2.TransformBuilder,
   build: () => build,
+  createBaked: () => createBaked,
+  createFunctionString: () => createFunctionString,
   device: () => device,
   sim: () => sim,
   toBuild: () => toBuild,
@@ -69,7 +71,11 @@ function toBuild(simBuild) {
   };
 }
 function toProgram(simProgram) {
-  return (0, import_gimblocks.jsToBlocks)(simProgram.toString());
+  if (typeof simProgram === "function") {
+    return (0, import_gimblocks.jsToBlocks)(simProgram.toString());
+  } else {
+    return simProgram.blocks;
+  }
 }
 
 // src/lib/simulate/state.ts
@@ -78,7 +84,7 @@ function init(build2) {
   const world = new import_miniplex.World();
   const channels = {};
   let devices = build2.devices;
-  devices = devices.slice().reverse();
+  devices = devices.slice();
   devices.forEach((device2) => {
     world.add(newEntity(device2));
   });
@@ -110,6 +116,12 @@ function newEntity(device2) {
         text: device2.options.text,
         color: device2.options.color
       };
+      ret.visible = device2.options.visibleOnGameStart == "Yes";
+      break;
+    case "trigger":
+      ret.activated = device2.options.activeOnGameStart;
+      ret.triggerCount = 0;
+      ret.recursionCount = 0;
       break;
   }
   return ret;
@@ -117,13 +129,30 @@ function newEntity(device2) {
 
 // src/lib/simulate/transactionCollector.ts
 function unimpl() {
-  throw new Error("Not implemented");
+  console.warn("Called unimplemented function");
+}
+function unimplNum() {
+  unimpl();
+  return 0;
+}
+function unimplStr() {
+  unimpl();
+  return "";
+}
+function unimplBool() {
+  unimpl();
+  return false;
 }
 var TransactionCollector = class {
   transactions = [];
   state;
   constructor(state) {
     this.state = state;
+  }
+  // bake allows you to dynamically create valid js expression strings (exprStringKey),
+  // and inject them into the function, while also leaving a an actual value for gimulator.
+  bake(gimulatorValue, exprStringKey) {
+    return gimulatorValue;
   }
   logicBoolean(BOOL) {
     return BOOL === "TRUE";
@@ -267,7 +296,7 @@ var TransactionCollector = class {
         AT = AT ?? 1;
         break;
       case "FROM_END":
-        AT = VALUE?.length ?? 0 - (AT ?? 1);
+        AT = (VALUE?.length ?? 0) - (AT ?? 0) + 1;
         break;
       case "FIRST":
         AT = 1;
@@ -319,11 +348,13 @@ var TransactionCollector = class {
     if (set_property == null || value == null) {
       return;
     }
-    this.transactions.push({
-      type: "setProperty",
-      property: set_property,
-      value
-    });
+    for (let entity of this.state.queries.property) {
+      if (entity.device.type != "property")
+        continue;
+      if (entity.device.options.propertyName != set_property)
+        continue;
+      entity.property = value;
+    }
   }
   getProperty(get_property) {
     for (let { property, device: device2 } of this.state.queries.property) {
@@ -336,7 +367,7 @@ var TransactionCollector = class {
     throw new Error(`Property not found: ${get_property}`);
   }
   triggeringPlayersName() {
-    unimpl();
+    return unimplStr();
   }
   addActivityFeedItemForEveryone(add_activity_feed_item_for_everyone) {
     unimpl();
@@ -347,22 +378,22 @@ var TransactionCollector = class {
   addActivityFeedItemForGameHost(add_activity_feed_item_for_game_host) {
   }
   triggeringPlayersTeamNumber() {
-    unimpl();
+    return unimplNum();
   }
   triggeringPlayersScore() {
-    unimpl();
+    return unimplNum();
   }
   getScoreOfTeam(get_score_of_team) {
-    unimpl();
+    return unimplNum();
   }
   isALiveGame() {
-    unimpl();
+    return unimplBool();
   }
   isAnAssignment() {
-    unimpl();
+    return unimplBool();
   }
   secondsIntoGame() {
-    unimpl();
+    return unimplNum();
   }
   setObjectiveTo(set_objective_to) {
     unimpl();
@@ -374,16 +405,16 @@ var TransactionCollector = class {
     unimpl();
   }
   sendNotificationTitleContent(title, content) {
-    unimpl();
+    console.log("notification:", title, "|", content);
   }
   otherPlayersName() {
-    unimpl();
+    return unimplStr();
   }
   otherPlayersTeamNumber() {
-    unimpl();
+    return unimplNum();
   }
   getPropertyAsOtherPlayer(get_property_as_other_player) {
-    unimpl();
+    return unimplNum();
   }
   setPropertyAsOtherPlayerValue(set_property_as_other_player, value) {
     unimpl();
@@ -422,7 +453,7 @@ var TransactionCollector = class {
     unimpl();
   }
   questionsAnsweredCorrectlyInARow() {
-    unimpl();
+    return unimplNum();
   }
   setMessageShownWhenPlayerAnswersCorrectly(set_message_shown_when_player_answers_correctly) {
     unimpl();
@@ -437,31 +468,31 @@ var TransactionCollector = class {
     unimpl();
   }
   getAmountOfCurrentItem() {
-    unimpl();
+    return unimplNum();
   }
   setGuiText(set_text) {
     unimpl();
   }
   getMinutes() {
-    unimpl();
+    return unimplNum();
   }
   getSeconds() {
-    unimpl();
+    return unimplNum();
   }
   getTimeLeftFormatted() {
-    unimpl();
+    return unimplStr();
   }
   numberOfPlayersOnTeam() {
-    unimpl();
+    return unimplNum();
   }
   knockedPlayersName() {
-    unimpl();
+    return unimplStr();
   }
   knockedPlayersTeamNumber() {
-    unimpl();
+    return unimplNum();
   }
   getPropertyAsKnockedOutPlayer(get_property_as_knocked_out_player) {
-    unimpl();
+    return unimplNum();
   }
   setPropertyAsKnockedOutPlayerValue(set_property_as_knocked_out_player, value) {
     unimpl();
@@ -470,16 +501,16 @@ var TransactionCollector = class {
     unimpl();
   }
   tagZoneOtherCharacterName() {
-    unimpl();
+    return unimplStr();
   }
   tagZoneOtherCharacterTeamNumber() {
-    unimpl();
+    return unimplNum();
   }
   playersXPosition() {
-    unimpl();
+    return unimplNum();
   }
   playersYPosition() {
-    unimpl();
+    return unimplNum();
   }
   damagePlayerCustomAmountAmount(amount) {
     unimpl();
@@ -520,11 +551,51 @@ function updateWorldFromChannelCall(state, channel) {
         continue;
       excecuteBlocks(state, entity, codeGrid.blocks);
     }
+    updateTriggerFromChannel(state, entity, channel);
   }
+}
+function updateTriggerFromChannel(state, entity, channel) {
+  if (entity.device.type != "trigger")
+    return;
+  if (entity.device.options.activateChannel == channel) {
+    entity.activated = true;
+  }
+  if (entity.device.options.deactivateChannel == channel) {
+    entity.activated = false;
+  }
+  if (!entity.activated)
+    return;
+  if (entity.device.options.triggerWhenReceivingOnChannel == channel) {
+    if (entity.device.options.maxTriggers != null && entity.triggerCount > entity.device.options.maxTriggers)
+      return;
+    if (entity.device.options.triggerWhenReceivingOnChannel == entity.device.options.channelToTrigger) {
+      entity.recursionCount += 1;
+      if (entity.recursionCount > 300) {
+        entity.recursionCount = 0;
+        return;
+      }
+    }
+    if (entity.device.options.channelToTrigger != "") {
+      triggerChannel(state, entity.device.options.channelToTrigger);
+    }
+    for (let codeGrid of entity.device.codeGrids) {
+      if (codeGrid.type != "WHEN_TRIGGERED")
+        continue;
+      excecuteBlocks(state, entity, codeGrid.blocks);
+    }
+    entity.triggerCount++;
+  }
+}
+function triggerChannel(state, channel) {
+  updateFromTransactions(state, [{ type: "channel", channel }]);
 }
 function excecuteBlocks(state, entity, blocks) {
   let transactionCollector = new TransactionCollector(state);
-  blocks(transactionCollector);
+  if (typeof blocks === "function") {
+    blocks(transactionCollector);
+  } else {
+    blocks.program(transactionCollector);
+  }
   updateFromTransactions(state, transactionCollector.transactions, entity);
 }
 function updateFromTransactions(state, transactions, entity) {
@@ -533,13 +604,20 @@ function updateFromTransactions(state, transactions, entity) {
       case "channel":
         state.channels[transaction.channel] = (state.channels[transaction.channel] ?? 0) + 1;
         continue;
+      case "setProperty":
+        for (let e of state.queries.property) {
+          if (e.device.type != "property")
+            continue;
+          if (e.device.options.propertyName != transaction.property)
+            continue;
+          e.property = transaction.value;
+          break;
+        }
+        continue;
     }
     if (entity == null)
       throw new Error(`Entity required for transaction ${transaction.type}`);
     switch (transaction.type) {
-      case "setProperty":
-        entity.property = transaction.value;
-        break;
       case "setText":
         entity.text.text = transaction.text;
         break;
@@ -552,22 +630,88 @@ function updateFromTransactions(state, transactions, entity) {
 
 // src/lib/simulate.ts
 var Sim = class {
-  #state;
+  state;
   constructor(build2) {
-    this.#state = init(build2);
+    this.state = init(build2);
   }
   update() {
-    update(this.#state);
+    update(this.state);
   }
   broadcastOn(channel) {
-    updateFromTransactions(this.#state, [{ type: "channel", channel }]);
+    updateFromTransactions(this.state, [{ type: "channel", channel }]);
+  }
+  getProperty(name) {
+    for (let { property, device: device2 } of this.state.queries.property) {
+      if (device2.type == "property" && device2.options.propertyName == name) {
+        return property;
+      }
+    }
+    throw new Error(`No property with name ${name}`);
   }
   get world() {
-    return this.#state.world;
+    return this.state.world;
   }
 };
 function sim(build2) {
   return new Sim(build2);
+}
+
+// src/lib/blocks.ts
+var import_gimblocks2 = require("gimblocks");
+var import_acorn = require("acorn");
+function createBaked(f, exprStrings) {
+  let blocks = (0, import_gimblocks2.jsToBlocks)(f.toString(), {
+    customConvertExpression: function(expression, ctx, convertExpression) {
+      function defaultRet() {
+        return convertExpression(expression);
+      }
+      if (expression.type != "CallExpression")
+        return defaultRet();
+      let callee = expression.callee;
+      if (callee.type != "MemberExpression")
+        return defaultRet();
+      if (callee.object.type != "Identifier")
+        return defaultRet();
+      if (callee.object.name != ctx.device)
+        return defaultRet();
+      if (callee.property.type != "Identifier")
+        return defaultRet();
+      if (callee.property.name != "bake")
+        return defaultRet();
+      if (expression.arguments.length != 2)
+        throw new Error(
+          `bake requires two arguments, got ${expression.arguments.length}`
+        );
+      let exprStringKey = expression.arguments[1];
+      if (exprStringKey.type != "Literal")
+        throw new Error(
+          `bake requires string literal as second argument, got ${exprStringKey.type}`
+        );
+      if (typeof exprStringKey.value != "string")
+        throw new Error(
+          `bake requires string literal as second argument, got ${exprStringKey.value}`
+        );
+      let exprString = exprStrings[exprStringKey.value];
+      if (exprString == null)
+        throw new Error(
+          `exprString ${exprStringKey.value} not found in exprStrings`
+        );
+      return convertExpression(
+        (0, import_acorn.parseExpressionAt)(exprString, 0, { ecmaVersion: 2020 })
+      );
+    }
+  });
+  return {
+    program: f,
+    blocks
+  };
+}
+function createFunctionString(f, functionString) {
+  let blocks = (0, import_gimblocks2.jsToBlocks)(functionString);
+  return {
+    program: f,
+    blocks
+  };
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
@@ -576,6 +720,8 @@ function sim(build2) {
   SimDeviceBuilder,
   TransformBuilder,
   build,
+  createBaked,
+  createFunctionString,
   device,
   sim,
   toBuild,

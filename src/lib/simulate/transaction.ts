@@ -19,11 +19,8 @@ export type SetColorTransaction = {
 
 export type Color = string;
 
-export type EntityTransaction =
-  | SetPropertyTransaction
-  | SetTextTransaction
-  | SetColorTransaction;
+export type EntityTransaction = SetTextTransaction | SetColorTransaction;
 
-export type PureTransaction = ChannelTransaction;
+export type PureTransaction = ChannelTransaction | SetPropertyTransaction;
 
 export type Transaction = PureTransaction | EntityTransaction;

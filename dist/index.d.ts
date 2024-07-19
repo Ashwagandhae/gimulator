@@ -1,9 +1,17 @@
+import { Program } from 'gimblocks';
 import { Union } from 'gimblocks/device';
 import { BuildGeneric, DeviceGeneric, DeviceTypeMap, DeviceBuilderGeneric, BuildBuilderGeneric, Build } from 'gimbuild';
 export { Transform, TransformBuilder, transform } from 'gimbuild';
 import * as miniplex from 'miniplex';
+import { World, Query, With } from 'miniplex';
 
-type SimProgram = (d: Union) => void;
+type UnionWithBake = Union & {
+    bake: <T>(gimulatorValue: T, exprStringKey: string) => T;
+};
+type SimProgram = ((d: Union) => void) | {
+    program: (d: UnionWithBake) => void;
+    blocks: Program;
+};
 type SimBuild = BuildGeneric<SimProgram>;
 type SimDevice = DeviceGeneric<SimProgram>;
 declare class SimDeviceBuilder<T extends keyof DeviceTypeMap<SimProgram>> extends DeviceBuilderGeneric<SimProgram, T> {
@@ -29,15 +37,32 @@ type Entity = {
         text: string;
         color: string;
     };
+    activated?: boolean;
+    visible?: boolean;
+    triggerCount?: number;
+    recursionCount?: number;
+};
+type State = {
+    world: World<Entity>;
+    channels: Record<string, number>;
+    queries: {
+        property: Query<With<Entity, 'property'>>;
+    };
 };
 
 declare class Sim {
-    #private;
+    state: State;
     constructor(build: SimBuild);
     update(): void;
     broadcastOn(channel: string): void;
+    getProperty(name: string): number | string | boolean;
     get world(): miniplex.World<Entity>;
 }
 declare function sim(build: SimBuild): Sim;
 
-export { Sim, SimBuild, SimBuildBuilder, SimDevice, SimDeviceBuilder, SimProgram, build, device, sim, toBuild };
+declare function createBaked(f: (d: UnionWithBake) => void, exprStrings: {
+    [key: string]: string;
+}): SimProgram;
+declare function createFunctionString(f: (d: Union) => void, functionString: string): SimProgram;
+
+export { Sim, SimBuild, SimBuildBuilder, SimDevice, SimDeviceBuilder, SimProgram, UnionWithBake, build, createBaked, createFunctionString, device, sim, toBuild };

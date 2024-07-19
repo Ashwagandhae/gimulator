@@ -1,0 +1,21 @@
+{
+  "name": "examples",
+  "version": "1.0.0",
+  "description": "Example projects for gimulator",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "sim": "tsup src/sim.ts --silent && node dist/sim.js",
+    "build": "tsup src/build.ts --silent && node dist/build.js"
+  },
+  "author": "Ashwagandhae",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/copy-paste": "^1.1.33",
+    "tsup": "^8.1.0"
+  },
+  "dependencies": {
+    "copy-paste": "^1.5.3",
+    "gimulator": "file:.."
+  }
+}

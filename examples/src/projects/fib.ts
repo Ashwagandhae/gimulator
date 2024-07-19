@@ -1,34 +1,33 @@
-import { Union } from 'gimblocks/device';
-import { build, device, Sim } from 'gimulator';
+import { build, device, Sim, toBuild, transform } from 'gimulator';
+import { createOnChannelFunction, textProperty } from '../lib/util';
+import { addRuntime } from '../lib/runtime';
 
 let b = build('relative');
 
-function textProperty(name: string) {
-  return device('property').options({
-    propertyName: name,
-    valueType: 'string',
-    defaultValueText: '',
-  });
-}
+let onChannel = createOnChannelFunction(b);
 
-function onChannel(name: string, code: (d: Union) => void) {
-  return b.addDevice(device('notification').addChannelCodeGrid(name, code));
-}
+addRuntime(b);
 
-b.addDevice(textProperty('call'));
-b.addDevice(textProperty('stack'));
-b.addDevice(textProperty('stack.pop'));
-for (let i = 0; i < 3; i++) {
-  b.addDevice(textProperty('stack[' + i + ']'));
-}
+b.addDevice(
+  device('button')
+    .options({
+      interactionDuration: 0,
+      guiMessage: 'start',
+      channel: 'start',
+    })
+    .transform(transform(0, 64))
+);
+
 onChannel('start', (d) => {
-  d.setPropertyValue('stack,done', '4');
-  d.setPropertyValue('call', 'fib');
+  d.setPropertyValue('stack', '10,x,x,x');
+  d.setPropertyValue('call', 'fib0,done,x,x,x');
   d.broadcastMessageOnChannel('call');
 });
 
 onChannel('done', (d) => {
-  console.log('done', d.getProperty('stack'));
+  let res = d.getProperty('stack[0]') as string;
+  console.log('done', res);
+  d.sendNotificationTitleContent('done', res);
 });
 
 onChannel('fib0', (d) => {
@@ -98,14 +97,30 @@ onChannel('fib2', (d) => {
   // call: [fib2, ..] -> [..]
 });
 
-export function getBuild() {
-  return b.build();
-}
+export default {
+  build: toBuild(b.build()),
+  sim: sim,
+};
 
-export function sim() {
+function logState(step: number, sim: Sim) {
+  const logProperties = ['stack', 'stack[0]', 'stack[1]', 'call'];
+  // make square
+  console.log('---------------------------------');
+  console.log('| step:', step);
+  for (let i = 0; i < logProperties.length; i++) {
+    let value = sim.getProperty(logProperties[i]);
+    console.log(`| ${logProperties[i]}: `, value);
+  }
+  console.log('---------------------------------');
+}
+function sim() {
   let sim = new Sim(b.build());
   sim.broadcastOn('start');
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 10000; i++) {
+    logState(i, sim);
+    if (Object.keys(sim.state.channels).length === 0) {
+      break;
+    }
     sim.update();
   }
 }
